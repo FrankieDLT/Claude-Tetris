@@ -78,4 +78,5 @@ jobs:
                - **Cómo verificar**: pasos manuales en el navegador (no hay tests).
                Si es `needs-info`, lista las preguntas concretas en lugar de la propuesta.
                Termina con: "Para implementar, comenta `@claude implementa la solución`."
-            6. NO modifiques código, NO abras PRs, NO cierres el issue.
+            6. Todo comentario que publiques debe usar formato Markdown de GitHub (GFM) válido: encabezados, listas, negritas, bloques de código con triple backtick y lenguaje, y `código` en línea para nombres de archivos y funciones.
+            7. NO modifiques código, NO abras PRs, NO cierres el issue.
