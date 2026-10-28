@@ -218,3 +218,73 @@ kbd {
 #restart-btn:hover {
   background: var(--accent-hover);
 }
+
+/* ---- Récords ---- */
+.hidden {
+  display: none !important;
+}
+
+#name-form {
+  display: flex;
+  gap: 6px;
+}
+
+#name-input {
+  width: 130px;
+  padding: 6px 8px;
+  background: var(--board-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  user-select: text;
+}
+
+#name-save,
+#reset-records {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#name-save:hover,
+#reset-records:hover {
+  border-color: var(--accent);
+}
+
+#records {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+#score-list {
+  list-style: none;
+  width: 220px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+}
+
+#score-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--controls-text);
+}
+
+#score-list li.highlight {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+#best-stats {
+  font-size: 12px;
+  color: var(--controls-text);
+}
