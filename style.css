@@ -1,3 +1,41 @@
+:root {
+  --bg: #0f0f17;
+  --text: #e0e0e0;
+  --board-bg: #1a1a25;
+  --border: #2a2a3a;
+  --accent: #7aa2f7;
+  --accent-hover: #9bbdff;
+  --accent-text: #0f0f17;
+  --grid: #22222e;
+  --muted: #555570;
+  --controls-text: #888;
+  --kbd-bg: #22223a;
+  --kbd-border: #3a3a5a;
+  --kbd-text: #aaa;
+  --overlay-bg: rgba(10, 10, 20, 0.75);
+  --shadow: rgba(0, 0, 0, 0.6);
+  --danger: #e57373;
+}
+
+[data-theme="light"] {
+  --bg: #f2f3f7;
+  --text: #222;
+  --board-bg: #fff;
+  --border: #c8cad6;
+  --accent: #3d5fc4;
+  --accent-hover: #2f4ea8;
+  --accent-text: #fff;
+  --grid: #e3e5ee;
+  --muted: #6b6d85;
+  --controls-text: #555;
+  --kbd-bg: #e6e8f2;
+  --kbd-border: #c8cad6;
+  --kbd-text: #333;
+  --overlay-bg: rgba(242, 243, 247, 0.8);
+  --shadow: rgba(0, 0, 0, 0.15);
+  --danger: #c62828;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -5,8 +43,8 @@
 }
 
 body {
-  background: #0f0f17;
-  color: #e0e0e0;
+  background: var(--bg);
+  color: var(--text);
   font-family: system-ui, -apple-system, sans-serif;
   display: flex;
   flex-direction: column;
@@ -21,7 +59,7 @@ body {
   font-size: 40px;
   font-weight: 800;
   letter-spacing: 6px;
-  color: #7aa2f7;
+  color: var(--accent);
   margin-bottom: 20px;
 }
 
@@ -37,10 +75,10 @@ body {
 
 #board {
   display: block;
-  border: 1px solid #2a2a3a;
-  background: #1a1a25;
+  border: 1px solid var(--border);
+  background: var(--board-bg);
   border-radius: 4px;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 40px var(--shadow);
 }
 
 /* ---- Panel lateral ---- */
@@ -61,7 +99,7 @@ body {
 .label {
   font-size: 10px;
   letter-spacing: 2px;
-  color: #555570;
+  color: var(--muted);
   font-weight: 600;
 }
 
@@ -69,14 +107,14 @@ body {
   font-family: 'Courier New', Courier, monospace;
   font-size: 26px;
   font-weight: 700;
-  color: #7aa2f7;
+  color: var(--accent);
   letter-spacing: 1px;
 }
 
 #next-canvas {
   display: block;
-  border: 1px solid #2a2a3a;
-  background: #1a1a25;
+  border: 1px solid var(--border);
+  background: var(--board-bg);
   border-radius: 4px;
 }
 
@@ -90,20 +128,35 @@ body {
 
 .controls li {
   font-size: 12px;
-  color: #888;
+  color: var(--controls-text);
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
 kbd {
-  background: #22223a;
-  border: 1px solid #3a3a5a;
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-border);
   border-radius: 3px;
   padding: 1px 6px;
   font-size: 11px;
   font-family: inherit;
-  color: #aaa;
+  color: var(--kbd-text);
+}
+
+/* ---- Interruptor de tema ---- */
+#theme-toggle {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#theme-toggle:hover {
+  border-color: var(--accent);
 }
 
 /* ---- Overlay ---- */
@@ -113,7 +166,7 @@ kbd {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10, 10, 20, 0.75);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   border-radius: 4px;
 }
@@ -134,19 +187,19 @@ kbd {
   font-size: 28px;
   font-weight: 800;
   letter-spacing: 4px;
-  color: #e57373;
+  color: var(--danger);
 }
 
 #overlay-score {
   font-family: 'Courier New', Courier, monospace;
   font-size: 14px;
-  color: #7aa2f7;
+  color: var(--accent);
 }
 
 #restart-btn {
   margin-top: 8px;
-  background: #7aa2f7;
-  color: #0f0f17;
+  background: var(--accent);
+  color: var(--accent-text);
   border: none;
   border-radius: 6px;
   padding: 10px 28px;
@@ -158,5 +211,5 @@ kbd {
 }
 
 #restart-btn:hover {
-  background: #9bbdff;
+  background: var(--accent-hover);
 }
