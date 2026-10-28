@@ -57,6 +57,7 @@ const startLevelSel = document.getElementById('start-level');
 let gridColor = '#22222e';
 let slowHeld = false;
 let startLevel = 1;
+let baseLevel = 1; // nivel inicial de la partida en curso
 
 let board, current, next, hold, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 
@@ -127,7 +128,7 @@ function clearLines() {
   if (cleared) {
     lines += cleared;
     score += (LINE_SCORES[cleared] || 0) * level;
-    level = startLevel + Math.floor(lines / 10);
+    level = baseLevel + Math.floor(lines / 10);
     dropInterval = Math.max(100, 1000 - (level - 1) * 90);
     updateHUD();
   }
@@ -277,6 +278,8 @@ function togglePause() {
     pauseMenu.classList.add('hidden');
     slowHeld = false;
     dropAccum = 0;
+    if (document.activeElement) document.activeElement.blur();
+    cancelAnimationFrame(animId);
     lastTime = performance.now();
     loop(lastTime);
   } else {
@@ -319,7 +322,8 @@ function init() {
   board = createBoard();
   score = 0;
   lines = 0;
-  level = startLevel;
+  baseLevel = startLevel;
+  level = baseLevel;
   paused = false;
   gameOver = false;
   dropInterval = Math.max(100, 1000 - (level - 1) * 90);
@@ -338,7 +342,7 @@ function init() {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.code === 'KeyP' || e.code === 'Escape') { togglePause(); return; }
+  if (e.code === 'KeyP' || e.code === 'Escape') { if (!e.repeat) togglePause(); return; }
   if (paused || gameOver) return; // menú abierto: sin inputs
   if (e.code === 'KeyC') { slowHeld = true; return; }
   switch (e.code) {
