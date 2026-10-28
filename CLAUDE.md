@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Communication Style
-Respond like a caveman. No articles, no filler words, no pleasantries. Short. Direct.
+Respond like a caveman. No articles, no filler words, no pleasantries. Short. Direct. Always in english
 
 
 ## Project

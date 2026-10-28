@@ -263,7 +263,7 @@ function setTheme(t) {
   document.documentElement.dataset.theme = t;
   try { localStorage.setItem('theme', t); } catch (e) {}
   gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
-  themeBtn.textContent = t === 'dark' ? 'Tema claro' : 'Tema oscuro';
+  themeBtn.textContent = t === 'dark' ? 'Light Theme' : 'Dark Theme';
   // redibujar aunque esté en pausa o game over
   if (current && next) { draw(); drawNext(); }
 }
