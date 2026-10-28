@@ -36,6 +36,13 @@
   --danger: #c62828;
 }
 
+/* ---- Skins: fondo del tablero y rejilla (ambos temas) ---- */
+[data-skin="neon"] { --board-bg: #000; --grid: #1c1c2e; }
+[data-skin="pastel"] { --board-bg: #2a2733; --grid: #38344a; }
+[data-skin="pastel"][data-theme="light"] { --board-bg: #fff8fb; --grid: #f1e4ec; }
+[data-skin="pixel"] { --board-bg: #14141c; --grid: #24242f; }
+[data-skin="pixel"][data-theme="light"] { --board-bg: #e9e6dc; --grid: #d3cfc2; }
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -162,6 +169,21 @@ kbd {
 
 #theme-toggle:hover {
   border-color: var(--accent);
+}
+
+#skin-select {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#skin-select option {
+  background: var(--bg);
+  color: var(--text);
 }
 
 /* ---- Overlay ---- */
