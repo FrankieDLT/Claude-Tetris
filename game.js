@@ -4,7 +4,7 @@ const COLS = 10;
 const ROWS = 20;
 const BLOCK = 30;
 
-const COLORS = [
+let COLORS = [
   null,
   '#4dd0e1', // I - cyan
   '#ffd54f', // O - yellow
@@ -46,6 +46,7 @@ const restartBtn = document.getElementById('restart-btn');
 const themeBtn = document.getElementById('theme-toggle');
 const holdCanvas = document.getElementById('hold-canvas');
 const holdCtx = holdCanvas.getContext('2d');
+const skinSelect = document.getElementById('skin-select');
 
 let gridColor = '#22222e';
 let slowHeld = false;
@@ -169,16 +170,87 @@ function updateHUD() {
   levelEl.textContent = level;
 }
 
+// ---- Skins ----
+function drawRetro(context, px, py, s, color) {
+  context.fillStyle = color;
+  context.fillRect(px + 1, py + 1, s - 2, s - 2);
+  context.fillStyle = 'rgba(255,255,255,0.12)';
+  context.fillRect(px + 1, py + 1, s - 2, 4);
+}
+
+function drawNeon(context, px, py, s, color) {
+  context.shadowColor = color;
+  context.shadowBlur = 12;
+  context.strokeStyle = color;
+  context.lineWidth = 2;
+  context.strokeRect(px + 3, py + 3, s - 6, s - 6);
+  context.fillStyle = color;
+  context.globalAlpha *= 0.35;
+  context.fillRect(px + 3, py + 3, s - 6, s - 6);
+}
+
+function roundRectPath(context, x, y, w, h, r) {
+  context.beginPath();
+  context.moveTo(x + r, y);
+  context.arcTo(x + w, y, x + w, y + h, r);
+  context.arcTo(x + w, y + h, x, y + h, r);
+  context.arcTo(x, y + h, x, y, r);
+  context.arcTo(x, y, x + w, y, r);
+  context.closePath();
+}
+
+function drawPastel(context, px, py, s, color) {
+  roundRectPath(context, px + 1.5, py + 1.5, s - 3, s - 3, 8);
+  context.fillStyle = color;
+  context.fill();
+  roundRectPath(context, px + 5, py + 4, s - 10, 6, 3);
+  context.fillStyle = 'rgba(255,255,255,0.35)';
+  context.fill();
+}
+
+function drawPixel(context, px, py, s, color) {
+  context.fillStyle = color;
+  context.fillRect(px, py, s, s);
+  // textura: tablero de 4x4 px
+  const t = 4;
+  context.fillStyle = 'rgba(0,0,0,0.22)';
+  for (let i = 0; i < s; i += t)
+    for (let j = 0; j < s; j += t)
+      if (((i + j) / t) % 2 === 0) context.fillRect(px + i, py + j, Math.min(t, s - i), Math.min(t, s - j));
+  context.fillStyle = 'rgba(255,255,255,0.35)';
+  context.fillRect(px, py, s, t / 2);
+  context.fillRect(px, py, t / 2, s);
+  context.fillStyle = 'rgba(0,0,0,0.45)';
+  context.fillRect(px, py + s - t / 2, s, t / 2);
+  context.fillRect(px + s - t / 2, py, t / 2, s);
+}
+
+const SKINS = {
+  retro: {
+    colors: [null, '#4dd0e1', '#ffd54f', '#ba68c8', '#81c784', '#e57373', '#64b5f6', '#ffb74d', '#f06292', '#a1887f'],
+    draw: drawRetro,
+  },
+  neon: {
+    colors: [null, '#00f5ff', '#fff700', '#d400ff', '#39ff14', '#ff073a', '#1f51ff', '#ff9500', '#ff2bd6', '#e0e0e0'],
+    draw: drawNeon,
+  },
+  pastel: {
+    colors: [null, '#a8e6ef', '#fff1b8', '#d7b9ef', '#b9e8c1', '#f6bcbc', '#b5d4f7', '#fbd3a6', '#f7b9d1', '#d3c1b9'],
+    draw: drawPastel,
+  },
+  pixel: {
+    colors: [null, '#29b6c9', '#e6b800', '#9c3fb0', '#43a047', '#d32f2f', '#1e78d2', '#ef8a00', '#d81b60', '#795548'],
+    draw: drawPixel,
+  },
+};
+let currentSkin = 'retro';
+
 function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
-  const color = COLORS[colorIndex];
+  context.save();
   context.globalAlpha = alpha ?? 1;
-  context.fillStyle = color;
-  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
-  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
-  context.globalAlpha = 1;
+  SKINS[currentSkin].draw(context, x * size, y * size, size, COLORS[colorIndex]);
+  context.restore(); // restaura shadowBlur y globalAlpha
 }
 
 function drawGrid() {
@@ -303,6 +375,18 @@ function setTheme(t) {
   if (current && next) { draw(); drawNext(); drawHold(); }
 }
 
+function setSkin(name) {
+  if (!SKINS[name]) name = 'retro';
+  currentSkin = name;
+  COLORS = SKINS[name].colors;
+  document.documentElement.dataset.skin = name;
+  try { localStorage.setItem('skin', name); } catch (e) {}
+  skinSelect.value = name;
+  gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
+  // redibujar aunque esté en pausa o game over
+  if (current && next) { draw(); drawNext(); drawHold(); }
+}
+
 function init() {
   board = createBoard();
   score = 0;
@@ -365,6 +449,15 @@ themeBtn.addEventListener('click', e => {
   setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
   e.currentTarget.blur(); // evita que Space reactive el botón
 });
+
+skinSelect.addEventListener('change', e => {
+  setSkin(e.currentTarget.value);
+  e.currentTarget.blur(); // evita que Space/flechas cambien la skin
+});
+
+let savedSkin = null;
+try { savedSkin = localStorage.getItem('skin'); } catch (e) {}
+setSkin(savedSkin);
 
 let savedTheme = null;
 try { savedTheme = localStorage.getItem('theme'); } catch (e) {}
