@@ -13,6 +13,8 @@ const COLORS = [
   '#e57373', // Z - red
   '#64b5f6', // J - light blue
   '#ffb74d', // L - orange
+  '#f06292', // U - pink
+  '#a1887f', // dot - brown
 ];
 
 const PIECES = [
@@ -24,6 +26,8 @@ const PIECES = [
   [[5,5,0],[0,5,5],[0,0,0]],                  // Z
   [[6,0,0],[6,6,6],[0,0,0]],                  // J
   [[0,0,7],[7,7,7],[0,0,0]],                  // L
+  [[8,0,8],[8,0,8],[8,8,8]],                  // U
+  [[9]],                                       // dot (1x1)
 ];
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
@@ -40,17 +44,23 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeBtn = document.getElementById('theme-toggle');
+const holdCanvas = document.getElementById('hold-canvas');
+const holdCtx = holdCanvas.getContext('2d');
 
 let gridColor = '#22222e';
+let slowHeld = false;
 
-let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let board, current, next, hold, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
 }
 
 function randomPiece() {
-  const type = Math.floor(Math.random() * 7) + 1;
+  return makePiece(Math.floor(Math.random() * (PIECES.length - 1)) + 1);
+}
+
+function makePiece(type) {
   const shape = PIECES[type].map(row => [...row]);
   return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
 }
@@ -210,15 +220,38 @@ function draw() {
       drawBlock(ctx, current.x + c, current.y + r, current.shape[r][c], BLOCK);
 }
 
-function drawNext() {
+function drawPreview(context, piece) {
   const NB = 30;
-  nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-  const shape = next.shape;
+  context.clearRect(0, 0, 4 * NB, 4 * NB);
+  if (!piece) return;
+  const shape = piece.shape;
   const offX = Math.floor((4 - shape[0].length) / 2);
   const offY = Math.floor((4 - shape.length) / 2);
   for (let r = 0; r < shape.length; r++)
     for (let c = 0; c < shape[r].length; c++)
-      drawBlock(nextCtx, offX + c, offY + r, shape[r][c], NB);
+      drawBlock(context, offX + c, offY + r, shape[r][c], NB);
+}
+
+function drawNext() {
+  drawPreview(nextCtx, next);
+}
+
+function drawHold() {
+  drawPreview(holdCtx, hold);
+}
+
+function holdPiece() {
+  if (!hold) {
+    hold = makePiece(current.type);
+    spawn();
+  } else {
+    const swapped = makePiece(hold.type);
+    if (collide(swapped.shape, swapped.x, swapped.y)) return;
+    hold = makePiece(current.type);
+    current = swapped;
+  }
+  dropAccum = 0;
+  drawHold();
 }
 
 function endGame() {
@@ -247,7 +280,8 @@ function loop(ts) {
   const dt = ts - lastTime;
   lastTime = ts;
   dropAccum += dt;
-  if (dropAccum >= dropInterval) {
+  const interval = slowHeld ? dropInterval * 2 : dropInterval;
+  if (dropAccum >= interval) {
     dropAccum = 0;
     if (!collide(current.shape, current.x, current.y + 1)) {
       current.y++;
@@ -266,7 +300,7 @@ function setTheme(t) {
   gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
   themeBtn.textContent = t === 'dark' ? 'Light Theme' : 'Dark Theme';
   // redibujar aunque esté en pausa o game over
-  if (current && next) { draw(); drawNext(); }
+  if (current && next) { draw(); drawNext(); drawHold(); }
 }
 
 function init() {
@@ -278,7 +312,10 @@ function init() {
   gameOver = false;
   dropInterval = 1000;
   dropAccum = 0;
+  slowHeld = false;
   lastTime = performance.now();
+  hold = null;
+  drawHold();
   next = randomPiece();
   spawn();
   updateHUD();
@@ -289,6 +326,7 @@ function init() {
 
 document.addEventListener('keydown', e => {
   if (e.code === 'KeyP') { togglePause(); return; }
+  if (e.code === 'KeyC') { slowHeld = true; return; }
   if (paused || gameOver) return;
   switch (e.code) {
     case 'ArrowLeft':
@@ -304,6 +342,9 @@ document.addEventListener('keydown', e => {
     case 'KeyX':
       tryRotate();
       break;
+    case 'KeyS':
+      holdPiece();
+      break;
     case 'Space':
       e.preventDefault();
       hardDrop();
@@ -311,6 +352,12 @@ document.addEventListener('keydown', e => {
   }
   updateHUD();
 });
+
+document.addEventListener('keyup', e => {
+  if (e.code === 'KeyC') slowHeld = false;
+});
+
+window.addEventListener('blur', () => { slowHeld = false; });
 
 restartBtn.addEventListener('click', init);
 
