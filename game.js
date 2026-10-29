@@ -4,18 +4,24 @@ const COLS = 10;
 const ROWS = 20;
 const BLOCK = 30;
 
-const COLORS = [
-  null,
-  '#4dd0e1', // I - cyan
-  '#ffd54f', // O - yellow
-  '#ba68c8', // T - purple
-  '#81c784', // S - green
-  '#e57373', // Z - red
-  '#64b5f6', // J - light blue
-  '#ffb74d', // L - orange
-  '#f06292', // U - pink
-  '#a1887f', // dot - brown
-];
+// Orden: I, O, T, S, Z, J, L, U, dot
+const SKINS = {
+  retro: {
+    colors: [null, '#4dd0e1', '#ffd54f', '#ba68c8', '#81c784', '#e57373', '#64b5f6', '#ffb74d', '#f06292', '#a1887f'],
+  },
+  neon: {
+    colors: [null, '#00ffff', '#ffff00', '#ff00ff', '#39ff14', '#ff073a', '#1f51ff', '#ff9500', '#ff2bd6', '#e0e0e0'],
+  },
+  pastel: {
+    colors: [null, '#a8e6ef', '#fff1b8', '#d9b8f0', '#b8e6c1', '#f5b8b8', '#b8d4f5', '#fbd3a8', '#f7bcd2', '#d7c4bb'],
+  },
+  pixel: {
+    colors: [null, '#29b6f6', '#fdd835', '#ab47bc', '#66bb6a', '#ef5350', '#3f6fd8', '#fb8c00', '#ec407a', '#8d6e63'],
+  },
+};
+
+let COLORS = SKINS.retro.colors;
+let skin = 'retro';
 
 const PIECES = [
   null,
@@ -44,6 +50,7 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeBtn = document.getElementById('theme-toggle');
+const skinSelect = document.getElementById('skin-select');
 const holdCanvas = document.getElementById('hold-canvas');
 const holdCtx = holdCanvas.getContext('2d');
 const pauseMenu = document.getElementById('pause-menu');
@@ -198,15 +205,53 @@ function updateHUD() {
   levelEl.textContent = level;
 }
 
+const BLOCK_DRAWERS = {
+  retro(context, px, py, s, color) {
+    context.fillStyle = color;
+    context.fillRect(px, py, s, s);
+    context.fillStyle = 'rgba(255,255,255,0.12)';
+    context.fillRect(px, py, s, 4);
+  },
+  neon(context, px, py, s, color) {
+    context.shadowColor = color;
+    context.shadowBlur = 12;
+    context.fillStyle = color;
+    context.fillRect(px + 2, py + 2, s - 4, s - 4);
+    context.shadowBlur = 0;
+    context.fillStyle = 'rgba(255,255,255,0.35)';
+    context.fillRect(px + 4, py + 4, s - 8, s - 8);
+  },
+  pastel(context, px, py, s, color) {
+    context.fillStyle = color;
+    context.beginPath();
+    context.roundRect(px, py, s, s, s * 0.3);
+    context.fill();
+    context.fillStyle = 'rgba(255,255,255,0.45)';
+    context.beginPath();
+    context.roundRect(px + s * 0.18, py + s * 0.14, s * 0.64, s * 0.18, s * 0.09);
+    context.fill();
+  },
+  pixel(context, px, py, s, color) {
+    context.fillStyle = color;
+    context.fillRect(px, py, s, s);
+    const cell = Math.max(2, Math.round(s / 6));
+    const n = Math.floor(s / cell);
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        const edge = i === 0 || j === 0 || i === n - 1 || j === n - 1;
+        if (edge) context.fillStyle = (i === 0 || j === 0) ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)';
+        else if ((i + j) % 2) context.fillStyle = 'rgba(0,0,0,0.18)';
+        else continue;
+        context.fillRect(px + i * cell, py + j * cell, cell, cell);
+      }
+    }
+  },
+};
+
 function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
-  const color = COLORS[colorIndex];
   context.globalAlpha = alpha ?? 1;
-  context.fillStyle = color;
-  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
-  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+  BLOCK_DRAWERS[skin](context, x * size + 1, y * size + 1, size - 2, COLORS[colorIndex]);
   context.globalAlpha = 1;
 }
 
@@ -399,13 +444,27 @@ function loop(ts) {
   animId = requestAnimationFrame(loop);
 }
 
+function redrawAll() {
+  gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
+  // redibujar aunque esté en pausa o game over
+  if (current && next) { draw(); drawNext(); drawHold(); }
+}
+
 function setTheme(t) {
   document.documentElement.dataset.theme = t;
   try { localStorage.setItem('theme', t); } catch (e) {}
-  gridColor = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
   themeBtn.textContent = t === 'dark' ? 'Light Theme' : 'Dark Theme';
-  // redibujar aunque esté en pausa o game over
-  if (current && next) { draw(); drawNext(); drawHold(); }
+  redrawAll();
+}
+
+function setSkin(s) {
+  if (!SKINS[s]) s = 'retro';
+  skin = s;
+  COLORS = SKINS[s].colors;
+  document.documentElement.dataset.skin = s;
+  skinSelect.value = s;
+  try { localStorage.setItem('skin', s); } catch (e) {}
+  redrawAll();
 }
 
 function init() {
@@ -510,6 +569,15 @@ themeBtn.addEventListener('click', e => {
 let savedTheme = null;
 try { savedTheme = localStorage.getItem('theme'); } catch (e) {}
 setTheme(savedTheme === 'light' ? 'light' : 'dark');
+
+skinSelect.addEventListener('change', e => {
+  setSkin(e.target.value);
+  e.target.blur(); // evita que Space/flechas cambien la opción
+});
+
+let savedSkin = null;
+try { savedSkin = localStorage.getItem('skin'); } catch (e) {}
+setSkin(savedSkin);
 
 init();
 showStart();

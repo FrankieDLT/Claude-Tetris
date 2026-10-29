@@ -36,6 +36,12 @@
   --danger: #c62828;
 }
 
+/* Neon: fondo negro en ambos temas */
+[data-skin="neon"] {
+  --board-bg: #000;
+  --grid: #1c1c2c;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -156,6 +162,16 @@ kbd {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#skin-select {
+  background: var(--board-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
   font-size: 12px;
   cursor: pointer;
 }
